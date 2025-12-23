@@ -4,4 +4,5 @@
 #  alembic upgrade head
 #fi
 
-uvicorn src.main:app --host 0.0.0.0 --port 8000 --reload
+alembic upgrade head
+flask run --host=0.0.0.0 --port=8000
