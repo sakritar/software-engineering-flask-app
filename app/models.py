@@ -9,7 +9,7 @@ class AbstractModel(DeclarativeBase):
     pass
 
 
-class Post(db.Model):
+class Post(AbstractModel):
     __tablename__ = 'posts'
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
