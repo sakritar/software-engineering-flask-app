@@ -24,11 +24,12 @@ def client(app):
 
 @pytest.fixture
 def sample_post(app):
-    with app.app_context():
-        post = Post(title='Test Post', content='Test Content')
-        db.session.add(post)
-        db.session.commit()
-        return post
+    post = Post(title='Test Post', content='Test Content')
+    db.session.add(post)
+    db.session.commit()
+    post_id = post.id
+    db.session.expunge(post)
+    return {'id': post_id, 'title': 'Test Post', 'content': 'Test Content'}
 
 
 def test_get_posts_empty(client):
@@ -60,9 +61,9 @@ def test_create_post_validation_error(client):
 
 
 def test_get_post(client, sample_post):
-    response = client.get(f'/api/posts/{sample_post.id}')
+    response = client.get(f'/api/posts/{sample_post["id"]}')
     assert response.status_code == 200
-    assert response.json['id'] == sample_post.id
+    assert response.json['id'] == sample_post['id']
     assert response.json['title'] == 'Test Post'
     assert response.json['content'] == 'Test Content'
 
@@ -76,7 +77,7 @@ def test_get_posts(client, sample_post):
     response = client.get('/api/posts')
     assert response.status_code == 200
     assert len(response.json) == 1
-    assert response.json[0]['id'] == sample_post.id
+    assert response.json[0]['id'] == sample_post['id']
 
 
 def test_update_post(client, sample_post):
@@ -84,7 +85,7 @@ def test_update_post(client, sample_post):
         'title': 'Updated Post',
         'content': 'Updated Content'
     }
-    response = client.put(f'/api/posts/{sample_post.id}', json=data)
+    response = client.put(f'/api/posts/{sample_post["id"]}', json=data)
     assert response.status_code == 200
     assert response.json['title'] == 'Updated Post'
     assert response.json['content'] == 'Updated Content'
@@ -94,7 +95,7 @@ def test_update_post_partial(client, sample_post):
     data = {
         'title': 'Updated Title Only'
     }
-    response = client.put(f'/api/posts/{sample_post.id}', json=data)
+    response = client.put(f'/api/posts/{sample_post["id"]}', json=data)
     assert response.status_code == 200
     assert response.json['title'] == 'Updated Title Only'
     assert response.json['content'] == 'Test Content'
@@ -114,15 +115,15 @@ def test_update_post_validation_error(client, sample_post):
         'title': '',
         'content': 'Updated Content'
     }
-    response = client.put(f'/api/posts/{sample_post.id}', json=data)
+    response = client.put(f'/api/posts/{sample_post["id"]}', json=data)
     assert response.status_code == 400
 
 
 def test_delete_post(client, sample_post):
-    response = client.delete(f'/api/posts/{sample_post.id}')
+    response = client.delete(f'/api/posts/{sample_post["id"]}')
     assert response.status_code == 200
     
-    get_response = client.get(f'/api/posts/{sample_post.id}')
+    get_response = client.get(f'/api/posts/{sample_post["id"]}')
     assert get_response.status_code == 404
 
 

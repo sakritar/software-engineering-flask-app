@@ -11,7 +11,7 @@ posts_bp = Blueprint('posts', __name__, url_prefix='/api/posts')
 @posts_bp.route('', methods=['GET'])
 def get_posts():
     try:
-        posts = Post.query.all()
+        posts = db.session.query(Post).all()
         return jsonify([PostResponse.model_validate(post).model_dump() for post in posts]), 200
     except Exception as e:
         return jsonify({'error': str(e)}), 500
@@ -20,7 +20,9 @@ def get_posts():
 @posts_bp.route('/<int:post_id>', methods=['GET'])
 def get_post(post_id):
     try:
-        post = Post.query.get_or_404(post_id)
+        post = db.session.get(Post, post_id)
+        if post is None:
+            return jsonify({'error': 'Post not found'}), 404
         return jsonify(PostResponse.model_validate(post).model_dump()), 200
     except Exception as e:
         return jsonify({'error': str(e)}), 500
@@ -53,7 +55,10 @@ def create_post():
 @posts_bp.route('/<int:post_id>', methods=['PUT'])
 def update_post(post_id):
     try:
-        post = Post.query.get_or_404(post_id)
+        post = db.session.get(Post, post_id)
+        if post is None:
+            return jsonify({'error': 'Post not found'}), 404
+        
         data = request.get_json()
         post_data = PostUpdate.model_validate(data)
         
@@ -78,7 +83,10 @@ def update_post(post_id):
 @posts_bp.route('/<int:post_id>', methods=['DELETE'])
 def delete_post(post_id):
     try:
-        post = Post.query.get_or_404(post_id)
+        post = db.session.get(Post, post_id)
+        if post is None:
+            return jsonify({'error': 'Post not found'}), 404
+        
         db.session.delete(post)
         db.session.commit()
         
