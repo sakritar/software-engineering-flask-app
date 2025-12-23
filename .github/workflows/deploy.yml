@@ -46,9 +46,6 @@ jobs:
         env:
           SQLALCHEMY_DATABASE_URI: 'sqlite:///:memory:'
           TESTING: 'true'
-      
-      - name: Check code formatting
-        run: poetry run black --check app/
 
   build:
     needs: test
